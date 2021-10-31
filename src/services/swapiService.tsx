@@ -47,6 +47,17 @@ export class SwapiService {
     return res.results.map(this._transformPerson);
   };
 
+  getPeoplePage = async (
+    page = 1
+  ): Promise<{ data: Person[]; nextPageExists: boolean }> => {
+    const res = await this.getResource(`/people/?page=${page}`);
+    console.log(res.next);
+    return {
+      data: res.results.map(this._transformPerson),
+      nextPageExists: res.next !== null,
+    };
+  };
+
   getPerson = async (id: number) => {
     const person = await this.getResource(`/people/${id}`);
     return this._transformPerson(person);
