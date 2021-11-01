@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Loader from "./loader";
 import { Person } from "../services/swapiService";
 import { Table, THead, TBody, Th, Tr } from "./styledTableElements";
@@ -11,14 +11,34 @@ const PeopleTable = () => {
   const [error, setError] = useState<string>("");
   const [peopleData, setPeopleData] = useState<Person[]>([]);
   const [nextPage, setNextPage] = useState<number>(1);
+  const [lastRowInView, setLastRowInView] = useState<boolean>(false);
+  const [canGetNextPage, setCanGetNextPage] = useState<boolean>(false);
+  const lastRowRef = useRef(null);
+
+  const getFirstPage = useCallback(() => {
+    setLoading(true);
+    getPeoplePage(1)
+      .then(({ data, nextPageExists }) => {
+        setPeopleData(data);
+        setCanGetNextPage(nextPageExists);
+        setNextPage(2);
+      })
+      .catch((err) => {
+        setError(err.toString());
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const getNextPage = useCallback(() => {
-    if (loading) {
+    setLoading(true);
+    if (canGetNextPage) {
       getPeoplePage(nextPage)
         .then(({ data, nextPageExists }) => {
           setPeopleData([...peopleData, ...data]);
-          console.log("Next page exists:", nextPageExists);
-          setNextPage(nextPageExists ? nextPage + 1 : -1);
+          setCanGetNextPage(nextPageExists);
+          setNextPage((x) => x + 1);
         })
         .catch((err) => {
           setError(err.toString());
@@ -27,32 +47,31 @@ const PeopleTable = () => {
           setLoading(false);
         });
     }
-  }, [loading, nextPage, peopleData]);
+  }, [canGetNextPage, nextPage, peopleData]);
+
+  useEffect(getFirstPage, [getFirstPage]);
 
   useEffect(() => {
-    document.addEventListener("scroll", scrollHandler);
-    setLoading(true);
-    getNextPage();
-    return document.removeEventListener("scroll", () => scrollHandler);
-  }, []);
+    const observer = new IntersectionObserver(
+      (entries) => setLastRowInView(entries[0].isIntersecting),
+      { threshold: 0.1 }
+    );
 
-  useEffect(getNextPage, [loading]);
+    if (lastRowRef.current) {
+      observer.observe(lastRowRef.current);
+    }
 
-  const scrollHandler = (e: Event) => {
-    setTimeout(() => {
-      const target = e.target as Document;
-      if (
-        nextPage > 0 &&
-        target.documentElement.scrollHeight -
-          (target.documentElement.scrollTop + window.innerHeight) <
-          100
-      ) {
-        setLoading(true);
-      }
-    }, 0);
-  };
+    return () => {
+      observer.disconnect();
+    };
+  });
 
-  // if (loading) return <Loader />;
+  useEffect(() => {
+    if (lastRowInView) {
+      getNextPage();
+    }
+  }, [getNextPage, lastRowInView]);
+
   if (error) return <p>Error: {error}</p>;
   return (
     <>
@@ -75,6 +94,7 @@ const PeopleTable = () => {
         </TBody>
       </Table>
       {loading && <Loader />}
+      {canGetNextPage && <div ref={lastRowRef} />}
     </>
   );
 };

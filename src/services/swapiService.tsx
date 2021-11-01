@@ -1,8 +1,8 @@
 export interface Person {
-  id: number;
+  id: string | null;
   name: string;
-  height: number;
-  mass: number;
+  height: string;
+  mass: string;
   hairColor: string;
   skinColor: string;
   birthYear: string;
@@ -115,10 +115,10 @@ export class SwapiService {
 
   _transformPerson = (person: any): Person => {
     return {
-      id: Number(this._extractId(person.url)),
+      id: this._extractId(person.url),
       name: person.name,
-      height: Number(person.height),
-      mass: Number(person.mass),
+      height: person.height,
+      mass: person.mass,
       hairColor: person.hair_color,
       skinColor: person.skin_color,
       birthYear: person.birth_year,
