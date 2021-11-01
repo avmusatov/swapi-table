@@ -1,6 +1,6 @@
-import { Person } from "../services/swapiService";
+import { Person, Starship, Planet } from "../services/swapiService";
 
-export const peopleMapping: { field: keyof Person; label: string }[] = [
+export const personMapping: { field: keyof Person; label: string }[] = [
   { field: "id", label: "Id" },
   { field: "name", label: "Name" },
   { field: "height", label: "Height" },
@@ -12,7 +12,7 @@ export const peopleMapping: { field: keyof Person; label: string }[] = [
   { field: "gender", label: "Sex" },
 ];
 
-export const planetMapping = [
+export const planetMapping: { field: keyof Planet; label: string }[] = [
   { field: "id", label: "Id" },
   { field: "name", label: "Name" },
   { field: "population", label: "Population" },
@@ -20,7 +20,7 @@ export const planetMapping = [
   { field: "diameter", label: "Diameter" },
 ];
 
-export const starshipMapping = [
+export const starshipMapping: { field: keyof Starship; label: string }[] = [
   { field: "id", label: "Id" },
   { field: "name", label: "Name" },
   { field: "model", label: "Model" },

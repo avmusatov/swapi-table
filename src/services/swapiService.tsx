@@ -11,29 +11,29 @@ export interface Person {
 }
 
 export interface Starship {
-  id: number;
+  id: string | null;
   name: string;
   model: string;
   manufacturer: string;
-  costInCredits: number;
-  length: number;
+  costInCredits: string;
+  length: string;
   crew: string;
   passengers: string;
-  cargoCapacity: number;
+  cargoCapacity: string;
 }
 
 export interface Planet {
-  id: number;
+  id: string | null;
   name: string;
   population: string;
-  rotationPeriod: number;
-  diameter: number;
+  rotationPeriod: string;
+  diameter: string;
 }
 
 export class SwapiService {
   _apiBase = "https://swapi.dev/api";
 
-  getResource = async (url: string) => {
+  getResource = async (url: string): Promise<any> => {
     const response = await fetch(`${this._apiBase}${url}`);
     if (!response.ok) {
       throw new Error(`Could not fetch ${url}`);
@@ -42,45 +42,34 @@ export class SwapiService {
     return entity;
   };
 
-  getAllPeople = async (): Promise<Person[]> => {
-    const res = await this.getResource(`/people/`);
-    return res.results.map(this._transformPerson);
-  };
-
   getPeoplePage = async (
     page = 1
   ): Promise<{ data: Person[]; nextPageExists: boolean }> => {
     const res = await this.getResource(`/people/?page=${page}`);
-    console.log(res.next);
     return {
       data: res.results.map(this._transformPerson),
       nextPageExists: res.next !== null,
     };
   };
 
-  getPerson = async (id: number) => {
-    const person = await this.getResource(`/people/${id}`);
-    return this._transformPerson(person);
+  getPlanetsPage = async (
+    page = 1
+  ): Promise<{ data: Planet[]; nextPageExists: boolean }> => {
+    const res = await this.getResource(`/planets/?page=${page}`);
+    return {
+      data: res.results.map(this._transformPlanet),
+      nextPageExists: res.next !== null,
+    };
   };
 
-  getAllPlanets = async () => {
-    const res = await this.getResource(`/planets/`);
-    return res.results.map(this._transformPlanet);
-  };
-
-  getPlanet = async (id: number) => {
-    const planet = await this.getResource(`/planets/${id}`);
-    return this._transformPlanet(planet);
-  };
-
-  getAllStarships = async () => {
-    const res = await this.getResource(`/starships/`);
-    return res.results.map(this._transformStarship);
-  };
-
-  getStarship = async (id: number) => {
-    const starship = await this.getResource(`/starships/${id}`);
-    return this._transformStarship(starship);
+  getStarshipsPage = async (
+    page = 1
+  ): Promise<{ data: Starship[]; nextPageExists: boolean }> => {
+    const res = await this.getResource(`/starships/?page=${page}`);
+    return {
+      data: res.results.map(this._transformStarship),
+      nextPageExists: res.next !== null,
+    };
   };
 
   _extractId = (url: string) => {
@@ -91,25 +80,25 @@ export class SwapiService {
 
   _transformPlanet = (planet: any): Planet => {
     return {
-      id: Number(this._extractId(planet.url)),
+      id: this._extractId(planet.url),
       name: planet.name,
       population: planet.population,
-      rotationPeriod: Number(planet.rotation_period),
+      rotationPeriod: planet.rotation_period,
       diameter: planet.diameter,
     };
   };
 
   _transformStarship = (starship: any): Starship => {
     return {
-      id: Number(this._extractId(starship.url)),
+      id: this._extractId(starship.url),
       name: starship.name,
       model: starship.model,
       manufacturer: starship.manufacturer,
-      costInCredits: Number(starship.cost_in_credits),
-      length: Number(starship.length),
+      costInCredits: starship.cost_in_credits,
+      length: starship.length,
       crew: starship.crew,
       passengers: starship.passengers,
-      cargoCapacity: Number(starship.cargo_capacity),
+      cargoCapacity: starship.cargo_capacity,
     };
   };
 

@@ -1,15 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Loader from "./loader";
-import { Person } from "../services/swapiService";
 import { Table, THead, TBody, Th, Tr } from "./styledTableElements";
-import { peopleMapping as mapping } from "../shared/filedToLabelMapping";
-import { SwapiService } from "../services/swapiService";
-const { getPeoplePage } = new SwapiService();
 
-const PeopleTable = () => {
+interface Props<T> {
+  getPage: (page: number) => Promise<{ data: T[]; nextPageExists: boolean }>;
+  mapping: { field: keyof T; label: string }[];
+}
+
+const DataTable = <T,>(
+  props: React.PropsWithChildren<Props<T>>
+): JSX.Element => {
+  const { getPage, mapping } = props;
+
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [peopleData, setPeopleData] = useState<Person[]>([]);
+  const [items, setItems] = useState<any[]>([]);
   const [nextPage, setNextPage] = useState<number>(1);
   const [lastRowInView, setLastRowInView] = useState<boolean>(false);
   const [canGetNextPage, setCanGetNextPage] = useState<boolean>(false);
@@ -17,9 +22,10 @@ const PeopleTable = () => {
 
   const getFirstPage = useCallback(() => {
     setLoading(true);
-    getPeoplePage(1)
+    setCanGetNextPage(false);
+    getPage(1)
       .then(({ data, nextPageExists }) => {
-        setPeopleData(data);
+        setItems(data);
         setCanGetNextPage(nextPageExists);
         setNextPage(2);
       })
@@ -29,14 +35,15 @@ const PeopleTable = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [getPage]);
 
   const getNextPage = useCallback(() => {
     setLoading(true);
+    setCanGetNextPage(false);
     if (canGetNextPage) {
-      getPeoplePage(nextPage)
+      getPage(nextPage)
         .then(({ data, nextPageExists }) => {
-          setPeopleData([...peopleData, ...data]);
+          setItems([...items, ...data]);
           setCanGetNextPage(nextPageExists);
           setNextPage((x) => x + 1);
         })
@@ -47,7 +54,7 @@ const PeopleTable = () => {
           setLoading(false);
         });
     }
-  }, [canGetNextPage, nextPage, peopleData]);
+  }, [canGetNextPage, getPage, nextPage, items]);
 
   useEffect(getFirstPage, [getFirstPage]);
 
@@ -56,11 +63,9 @@ const PeopleTable = () => {
       (entries) => setLastRowInView(entries[0].isIntersecting),
       { threshold: 0.1 }
     );
-
     if (lastRowRef.current) {
       observer.observe(lastRowRef.current);
     }
-
     return () => {
       observer.disconnect();
     };
@@ -79,15 +84,15 @@ const PeopleTable = () => {
         <THead>
           <Tr>
             {mapping.map(({ field, label }) => (
-              <Th key={field}>{label}</Th>
+              <Th key={String(field)}>{label}</Th>
             ))}
           </Tr>
         </THead>
         <TBody>
-          {peopleData.map((person) => (
-            <Tr key={person.id}>
+          {items.map((item) => (
+            <Tr key={item.id}>
               {mapping.map(({ field }) => (
-                <Th key={field}>{person[field]}</Th>
+                <Th key={String(field)}>{item[field]}</Th>
               ))}
             </Tr>
           ))}
@@ -99,4 +104,4 @@ const PeopleTable = () => {
   );
 };
 
-export default PeopleTable;
+export default DataTable;
