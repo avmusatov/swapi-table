@@ -50,7 +50,7 @@ const Details = ({ item, getImageUrl, displayedFields }: Props): JSX.Element => 
             />
             <List>
                 {displayedFields?.map(({ field, label }) => (
-                    <li key={item.id}>
+                    <li key={item[field]}>
                         <strong>{label}</strong>: {item[field]}
                     </li>
                 ))}

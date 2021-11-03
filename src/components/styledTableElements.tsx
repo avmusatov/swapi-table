@@ -28,6 +28,7 @@ export const Td = styled.td`
 `;
 
 export const Th = styled.th`
+    position: relative;
     padding: 25px 25px;
     border: 1px solid #000;
 `;
