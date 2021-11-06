@@ -33,6 +33,7 @@ const TdExpandable = <T,>(props: React.PropsWithChildren<TdProps<T>>): JSX.Eleme
         </>
     );
 };
+
 interface IconProps {
     active?: boolean;
 }
@@ -144,6 +145,21 @@ const DataTable = <T,>(props: React.PropsWithChildren<Props<T>>): JSX.Element =>
         }
     }, [canGetNextPage, getPage, nextPage, searchValue, columnSortBy, sortItems, items]);
 
+    const getIcon = useCallback(
+        (field) => {
+            if (!columnSortBy || columnSortBy !== String(field)) {
+                return 'fa fa-sort';
+            }
+            if (columnSortBy === String(field) && sortOrder === 'a-z') {
+                return 'fa fa-caret-up';
+            }
+            if (columnSortBy === String(field) && sortOrder === 'z-a') {
+                return 'fa fa-caret-down';
+            }
+        },
+        [columnSortBy, sortOrder]
+    );
+
     useEffect(getFirstPage, [getFirstPage]);
 
     useEffect(() => {
@@ -183,7 +199,7 @@ const DataTable = <T,>(props: React.PropsWithChildren<Props<T>>): JSX.Element =>
                             <Th key={String(field)}>
                                 <span>{label}</span>
                                 <SortIcon
-                                    className="fas fa-sort"
+                                    className={getIcon(field)}
                                     active={Boolean(columnSortBy) && columnSortBy === String(field)}
                                     onClick={() => requestSorting(String(field))}
                                 />
